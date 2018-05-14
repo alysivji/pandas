@@ -778,8 +778,14 @@ def assert_index_equal(left, right, exact='equiv', check_names=True,
 
     def _check_types(l, r, obj='Index'):
         if exact:
-            assert_class_equal(left, right, exact=exact, obj=obj)
-            assert_attr_equal('dtype', l, r, obj=obj)
+            assert_class_equal(l, r, exact=exact, obj=obj)
+
+            if not check_categorical:
+                if is_categorical_dtype(l) or is_categorical_dtype(r):
+                    assert_attr_equal('codes', l, r, obj=obj)
+            else:
+                assert_attr_equal('dtype', l, r, obj=obj)
+
             # allow string-like to have different inferred_types
             if l.inferred_type in ('string', 'unicode'):
                 assert r.inferred_type in ('string', 'unicode')
@@ -830,12 +836,20 @@ def assert_index_equal(left, right, exact='equiv', check_names=True,
             _check_types(left.levels[level], right.levels[level], obj=obj)
 
     if check_exact:
-        if not left.equals(right):
-            diff = np.sum((left.values != right.values)
-                          .astype(int)) * 100.0 / len(left)
-            msg = '{obj} values are different ({pct} %)'.format(
-                obj=obj, pct=np.round(diff, 5))
-            raise_assert_detail(obj, msg, left, right)
+        if not check_categorical:
+            if not np.array_equal(left.codes, right.codes):
+                diff = np.sum((left.codes != right.codes)
+                              .astype(int)) * 100.0 / len(left)
+                msg = '{obj} values are different ({pct} %)'.format(
+                    obj=obj, pct=np.round(diff, 5))
+                raise_assert_detail(obj, msg, left, right)
+        else:
+            if not left.equals(right):
+                diff = np.sum((left.values != right.values)
+                              .astype(int)) * 100.0 / len(left)
+                msg = '{obj} values are different ({pct} %)'.format(
+                    obj=obj, pct=np.round(diff, 5))
+                raise_assert_detail(obj, msg, left, right)
     else:
         _testing.assert_almost_equal(left.values, right.values,
                                      check_less_precise=check_less_precise,
