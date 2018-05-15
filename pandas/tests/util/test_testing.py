@@ -605,12 +605,18 @@ Series values are different \\(33\\.33333 %\\)
 
 Attribute "dtype" are different
 \\[left\\]:  CategoricalDtype\\(categories=\\['a', 'b'\\], ordered=False\\)
-\\[right\\]: CategoricalDtype\\(categories=\\['a', 'b', 'c'\\], ordered=False)"""
+\\[right\\]: CategoricalDtype\\(categories=\\['a', 'b', 'c'\\], ordered=False\\)"""
 
         with tm.assert_raises_regex(AssertionError, expected):
             assert_series_equal(pd.Series(pd.Categorical(['a', 'b'])),
                                 pd.Series(pd.Categorical(['a', 'b'],
                                           categories=['a', 'b', 'c'])))
+
+    def test_relax_exact_internal_categoricals_check(self):
+        assert_series_equal(pd.Series(pd.Categorical(['a', 'b'])),
+                            pd.Series(pd.Categorical(['a', 'b'],
+                                      categories=['a', 'b', 'c'])),
+                            check_categorical=False)
 
 
 class TestAssertFrameEqual(object):
