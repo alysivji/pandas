@@ -600,6 +600,18 @@ Series values are different \\(33\\.33333 %\\)
             assert_series_equal(pd.Series([1, 2, 3]), pd.Series([1, 2, 4]),
                                 check_less_precise=True)
 
+    def test_check_internal_categoricals_exactly(self):
+        expected = """Attributes are different
+
+Attribute "dtype" are different
+\\[left\\]:  CategoricalDtype\\(categories=\\['a', 'b'\\], ordered=False\\)
+\\[right\\]: CategoricalDtype\\(categories=\\['a', 'b', 'c'\\], ordered=False)"""
+
+        with tm.assert_raises_regex(AssertionError, expected):
+            assert_series_equal(pd.Series(pd.Categorical(['a', 'b'])),
+                                pd.Series(pd.Categorical(['a', 'b'],
+                                          categories=['a', 'b', 'c'])))
+
 
 class TestAssertFrameEqual(object):
 
